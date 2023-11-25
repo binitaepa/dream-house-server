@@ -32,13 +32,17 @@ async function run() {
     // await client.connect();
 
     const propertyCollection = client.db("houseDB").collection("properties");
+    const reviewCollection = client.db("houseDB").collection("reviews");
 
 
     app.get('/properties', async(req, res) =>{
         const result = await propertyCollection.find().toArray();
         res.send(result);
     })
-
+    app.get('/reviews', async(req, res) =>{
+        const result = await reviewCollection.find().toArray();
+        res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
