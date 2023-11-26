@@ -30,11 +30,47 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-
+    const userCollection = client.db("houseDB").collection("users");
     const propertyCollection = client.db("houseDB").collection("properties");
     const reviewCollection = client.db("houseDB").collection("reviews");
 
+    const verifyToken = (req, res, next) => {
+        console.log('inside verify token', req.headers.authorization);
+        if (!req.headers.authorization) {
+          return res.status(401).send({ message: 'unauthorized access' });
+        }
+        const token = req.headers.authorization.split(' ')[1];
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+          if (err) {
+            return res.status(401).send({ message: 'unauthorized access' })
+          }
+          req.decoded = decoded;
+          next();
+        })
+      }
 
+      app.post('/jwt',async(req,res)=>{
+        const user=req.body;
+        
+        const token= jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{
+          expiresIn:'2h'
+         
+        })
+        res.send({ token });
+      })
+      app.post('/users', async (req, res) => {
+        const user = req.body;
+        // insert email if user doesnt exists: 
+        
+        const query = { email: user.email }
+        const existingUser = await userCollection.findOne(query);
+        if (existingUser) {
+          return res.send({ message: 'user already exists', insertedId: null })
+        }
+        const result = await userCollection.insertOne(user);
+        res.send(result);
+      });
+      
     app.get('/properties', async(req, res) =>{
         const result = await propertyCollection.find().toArray();
         res.send(result);
