@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
+const jwt =require('jsonwebtoken')
 
 // dream-house
 // hNOUvBEj8SddzEai
@@ -33,6 +34,7 @@ async function run() {
     const userCollection = client.db("houseDB").collection("users");
     const propertyCollection = client.db("houseDB").collection("properties");
     const reviewCollection = client.db("houseDB").collection("reviews");
+    const wishCollection = client.db("houseDB").collection("wish");
 
     const verifyToken = (req, res, next) => {
         console.log('inside verify token', req.headers.authorization);
@@ -70,7 +72,28 @@ async function run() {
         const result = await userCollection.insertOne(user);
         res.send(result);
       });
-      
+      app.get('/users', async(req, res) =>{
+        const result = await userCollection.find().toArray();
+        res.send(result);
+    })
+    // app.get('/users/:email', async (req, res) => {
+    //     const email = req.params.email;
+  
+    //     if (email !== req.decoded.email) {
+    //       return res.status(403).send({ message: 'forbidden access' })
+    //     }
+  
+    //     const query = { email: email };
+    //     const user = await userCollection.findOne(query);
+       
+    //     res.send(user);
+    //   })
+   app.post('/wish',async(req,res)=>{
+    const wishItem=req.body;
+    const result=await wishCollection.insertOne(wishItem)
+    res.send(result);
+   })
+
     app.get('/properties', async(req, res) =>{
         const result = await propertyCollection.find().toArray();
         res.send(result);
