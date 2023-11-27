@@ -35,6 +35,7 @@ async function run() {
     const propertyCollection = client.db("houseDB").collection("properties");
     const reviewCollection = client.db("houseDB").collection("reviews");
     const wishCollection = client.db("houseDB").collection("wish");
+    const wishlistCollection = client.db("houseDB").collection("wishlist");
 
     const verifyToken = (req, res, next) => {
         console.log('inside verify token', req.headers.authorization);
@@ -93,7 +94,17 @@ async function run() {
     const result=await wishCollection.insertOne(wishItem)
     res.send(result);
    })
-
+ app.get('/wish',async(req,res)=>{
+    const email=req.query.email;
+    const query={email: email}
+    const result = await wishCollection.find().toArray();
+        res.send(result);
+ })
+ app.post('/wishlist',async(req,res)=>{
+    const wishItem=req.body;
+    const result=await wishCollection.insertOne(wishItem)
+    res.send(result);
+   })
     app.get('/properties', async(req, res) =>{
         const result = await propertyCollection.find().toArray();
         res.send(result);
