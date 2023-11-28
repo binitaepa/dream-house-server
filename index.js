@@ -107,8 +107,8 @@ async function run() {
     res.send(result);
    })
  app.post('/ratelist',async(req,res)=>{
-    const wishItem=req.body;
-    const result=await ratelistCollection.insertOne(wishItem)
+    const rateItem=req.body;
+    const result=await ratelistCollection.insertOne(rateItem)
     res.send(result);
    })
    app.get('/ratelist',async(req,res)=>{
@@ -117,6 +117,12 @@ async function run() {
     const result = await ratelistCollection.find().toArray();
         res.send(result);
  })
+ app.delete('/ratelist/:id',async(req,res)=>{
+    const id =req.params.id;
+    const query ={_id:new ObjectId(id)}
+    const result=await ratelistCollection.deleteOne(query);
+    res.send(result)
+  })
    app.get('/wishlist',async(req,res)=>{
     const email=req.query.email;
     const query={email: email}
