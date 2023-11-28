@@ -43,6 +43,8 @@ async function run() {
         if (!req.headers.authorization) {
           return res.status(401).send({ message: 'unauthorized access' });
         }
+        
+
         const token = req.headers.authorization.split(' ')[1];
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
           if (err) {
@@ -53,6 +55,29 @@ async function run() {
         })
       }
 
+      const verifyAdmin = async (req, res, next) => {
+        const email = req.decoded.email;
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const isAdmin = user?.role === 'admin';
+        if (!isAdmin) {
+          return res.status(403).send({ message: 'forbidden access' });
+        }
+        next();
+      }
+
+    //   const verifyAgent=async (req,res,next) =>{
+    //         const email = req.decoded.email;
+    //         const query = { email: email };
+    //         const user = await userCollection.findOne(query);
+    //         const isAgent = user?.role === 'agent';
+    //         if (!isAgent) {
+    //           return res.status(403).send({ message: 'forbidden access' });
+    //         }
+    //         next();
+    //       }
+
+
       app.post('/jwt',async(req,res)=>{
         const user=req.body;
         
@@ -62,7 +87,7 @@ async function run() {
         })
         res.send({ token });
       })
-      app.patch('/users/admin/:id',async(req,res)=>{
+      app.patch('/users/admin/:id',verifyToken,verifyAdmin,async(req,res)=>{
         const id =req.params.id;
         const filter={_id:new ObjectId(id)};
         const updatedDoc={
@@ -74,7 +99,8 @@ async function run() {
         const result = await userCollection.updateOne(filter,updatedDoc);
         res.send(result)
       })
-      app.patch('/users/agent/:id',async(req,res)=>{
+    //   changed here as admin to agent
+      app.patch('/users/agent/:id',verifyToken,verifyAdmin,async(req,res)=>{
         const id =req.params.id;
         const filter={_id:new ObjectId(id)};
         const updatedDoc={
@@ -98,7 +124,28 @@ async function run() {
         const result = await userCollection.insertOne(user);
         res.send(result);
       });
-      app.delete('/users/:id',async(req,res)=>{
+
+      app.get('/users/admin/:email', verifyToken,verifyAdmin, async (req, res) => {
+        const email = req.params.email;
+//   console.log(req.decoded.email)
+        if (email !== req.decoded.email) {
+          return res.status(403).send({ message: 'forbidden access' })
+        }
+  
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        let admin = false;
+      
+        if (user) {
+          admin = user?.role === 'admin';
+         
+        }
+         res.send({ admin });   
+        
+        
+       
+      })
+      app.delete('/users/:id',verifyToken,verifyAdmin,async(req,res)=>{
         const id =req.params.id;
         const query ={_id:new ObjectId(id)}
         const result=await userCollection.deleteOne(query);
@@ -109,18 +156,23 @@ async function run() {
         const result = await userCollection.find().toArray();
         res.send(result);
     })
-    // app.get('/users/:email', async (req, res) => {
-    //     const email = req.params.email;
+   
+//     app.get('/users/agent/:email',async (req, res) => {
+//         const email = req.params.email;
+// //   console.log(req.decoded.email)
+//         // if (email !== req.decoded.email) {
+//         //   return res.status(403).send({ message: 'forbidden access' })
+//         // }
   
-    //     if (email !== req.decoded.email) {
-    //       return res.status(403).send({ message: 'forbidden access' })
-    //     }
-  
-    //     const query = { email: email };
-    //     const user = await userCollection.findOne(query);
        
-    //     res.send(user);
-    //   })
+//         const query = { email: email };
+//         const user = await userCollection.findOne(query);
+//         let agent = false;
+//         if (user) {
+//           agent = user?.role === 'agent';
+//         }
+//         res.send({ agent });
+//       })
    app.post('/wish',async(req,res)=>{
     const wishItem=req.body;
     const result=await wishCollection.insertOne(wishItem)
@@ -129,7 +181,7 @@ async function run() {
  app.get('/wish',async(req,res)=>{
     const email=req.query.email;
     const query={email: email}
-    const result = await wishCollection.find().toArray();
+    const result = await wishCollection.find(query).toArray();
         res.send(result);
  })
  app.post('/wishlist',async(req,res)=>{
