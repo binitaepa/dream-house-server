@@ -111,6 +111,12 @@ async function run() {
     const result=await ratelistCollection.insertOne(wishItem)
     res.send(result);
    })
+   app.get('/ratelist',async(req,res)=>{
+    const email=req.query.email;
+    const query={email: email}
+    const result = await ratelistCollection.find().toArray();
+        res.send(result);
+ })
    app.get('/wishlist',async(req,res)=>{
     const email=req.query.email;
     const query={email: email}
