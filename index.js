@@ -64,17 +64,17 @@ async function run() {
         }
         next();
       }
-
-    //   const verifyAgent=async (req,res,next) =>{
-    //         const email = req.decoded.email;
-    //         const query = { email: email };
-    //         const user = await userCollection.findOne(query);
-    //         const isAgent = user?.role === 'agent';
-    //         if (!isAgent) {
-    //           return res.status(403).send({ message: 'forbidden access' });
-    //         }
-    //         next();
-    //       }
+// verify Agent
+      const verifyAgent=async (req,res,next) =>{
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isAgent = user?.role === 'agent';
+            if (!isAgent) {
+              return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+          }
 
 
       app.post('/jwt',async(req,res)=>{
@@ -148,28 +148,28 @@ async function run() {
         res.send(result)
       })
 
-      app.get('/users',verifyToken,verifyAdmin, async(req, res) =>{
+      app.get('/users',verifyToken, async(req, res) =>{
         const result = await userCollection.find().toArray();
         res.send(result);
     })
     
    
-//     app.get('/users/agent/:email',async (req, res) => {
-//         const email = req.params.email;
-// //   console.log(req.decoded.email)
-//         // if (email !== req.decoded.email) {
-//         //   return res.status(403).send({ message: 'forbidden access' })
-//         // }
+    app.get('/users/agent/:email',verifyToken,async (req, res) => {
+        const email = req.params.email;
+  console.log(req.decoded.email)
+        if (email !== req.decoded.email) {
+          return res.status(403).send({ message: 'forbidden access' })
+        }
   
        
-//         const query = { email: email };
-//         const user = await userCollection.findOne(query);
-//         let agent = false;
-//         if (user) {
-//           agent = user?.role === 'agent';
-//         }
-//         res.send({ agent });
-//       })
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        let agent = false;
+        if (user) {
+          agent = user?.role === 'agent';
+        }
+        res.send({ agent });
+      })
    app.post('/wish',async(req,res)=>{
     const wishItem=req.body;
     const result=await wishCollection.insertOne(wishItem)
