@@ -37,6 +37,7 @@ async function run() {
     const wishCollection = client.db("houseDB").collection("wish");
     const wishlistCollection = client.db("houseDB").collection("wishlist");
     const ratelistCollection = client.db("houseDB").collection("ratelist");
+    const addpropertylistCollection = client.db("houseDB").collection("addpropertylist");
 
     const verifyToken = (req, res, next) => {
         console.log('inside verify token', req.headers.authorization);
@@ -169,6 +170,23 @@ async function run() {
           agent = user?.role === 'agent';
         }
         res.send({ agent });
+      })
+
+    //   add property agent
+    app.post('/addpropertylist',async(req,res)=>{
+        const propertyItem=req.body;
+        const result=await addpropertylistCollection.insertOne(propertyItem)
+        res.send(result);
+       })
+       app.get('/addpropertylist',async(req,res)=>{
+        const result = await addpropertylistCollection.find().toArray();
+        res.send(result);
+     })
+     app.delete('/addpropertylist/:id',async(req,res)=>{
+        const id =req.params.id;
+        const query ={_id:new ObjectId(id)}
+        const result=await addpropertylistCollection.deleteOne(query);
+        res.send(result)
       })
    app.post('/wish',async(req,res)=>{
     const wishItem=req.body;
